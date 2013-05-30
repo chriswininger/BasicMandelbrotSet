@@ -24,13 +24,13 @@
             data[r + 1] = c[1];
             data[r + 2] = c[2];
             data[r + 3] = c[3];
-        }
+        };
     }
 })();
 
 // Mandelbrot Set Code
 (function(){
-    var canvasWidth = 500, canvasHeight = 400, startX = -1.95, endX = 2.05, startY = -0.95, endY = 4.05;
+    var canvasWidth = 500, canvasHeight = 400, startX = -2, endX = 1, startY = -1, endY = 1;
 
     $(function() {
         var canvas = $('#cvsMandelbrot'); // Find the canvas
