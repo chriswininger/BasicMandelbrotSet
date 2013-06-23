@@ -40,34 +40,51 @@
             startTime = new Date().getTime(), endTime, timeTaken,
             x, y, cReal, cImaginary, imageData;
 
-        drawMandelbrotSet(startX, endX, startY, endY, ctx); // Draw the set
+        // Draw the set
+        drawMandelbrotSet(startX, endX, startY, endY, ctx, function(result){
+            if (result.status === 'success') {
+                endTime = new Date().getTime();
+                timeTaken = endTime - startTime;
 
-        endTime = new Date().getTime();
-        timeTaken = endTime - startTime;
+                // Update the UI, indicating that processing is complete
+                $('#lblStatus').text('Done');
+                $('#lblSetInfo').text('Showing [' + startX + ' - ' + endX + '] x [' + startY + ' x ' + endY + '] Completed in: ' + timeTaken + ' ms');
+            }
+        });
 
-        function drawMandelbrotSet(startX, endX, startY, endY, ctx) {
+
+        function drawMandelbrotSet(startX, endX, startY, endY, ctx, complete) {
             // get the image data for the graphics context
             imageData = ctx.getImageData(0,0, canvas.width(), canvas.height());
 
             // Iterate over all pixels in our canvas and paint their value
-            for (x = 0; x < canvasWidth; x++) {
-                for (y = 0; y < canvasHeight; y++) {
-                    // Map our canvas coordinates onto the complex plane
-                    cReal = Math.map(x, 0, canvasWidth, startX, endX);
-                    cImaginary = Math.map(y, 0, canvasHeight, startY, endY);
+            var x = 0, batchX = function() {
+                if (x < canvasWidth) {
+                    // iterate over y coordinates
+                    for (y = 0; y < canvasHeight; y++) {
+                        // Map our canvas coordinates onto the complex plane
+                        cReal = Math.map(x, 0, canvasWidth, startX, endX);
+                        cImaginary = Math.map(y, 0, canvasHeight, startY, endY);
 
-                    if (inMandelbrotSet(cReal, cImaginary)) {
-                        setBlackPixel(x, y, imageData);
+                        if (inMandelbrotSet(cReal, cImaginary)) {
+                            setBlackPixel(x, y, imageData);
+                        }
+                    }
+
+                    x++;
+                    setTimeout(batchX, 0);
+                } else {
+                    if (typeof complete !== 'undefined'){
+                        // done draw image and perform callback
+                        ctx.putImageData(imageData,0,0);
+                        complete({'status': 'success', 'message': ''});
                     }
                 }
-            }
+            };
 
-            ctx.putImageData(imageData,0,0);
+            setTimeout(batchX, 0);
+
         }
-
-        // Update the UI, indicating that processing is complete
-        $('#lblStatus').text('Done');
-        $('#lblSetInfo').text('Showing [' + startX + ' - ' + endX + '] x [' + startY + ' x ' + endY + '] Completed in: ' + timeTaken + ' ms');
     });
 
     function setBlackPixel(x, y, imageData) {
